@@ -1,0 +1,12 @@
+html, body {
+    width: 90%;
+    height: 90%;
+}
+div {
+    display: flex;
+}
+.line {
+    fill: none;
+    stroke: steelblue;
+    stroke-width: 2;
+}
