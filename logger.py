@@ -3,7 +3,9 @@ import json
 import requests
 import subprocess
 
-URL = 'http://localhost:5000/add'
+HOST = 'localhost'
+PORT = 5000
+URL = 'http://%s:%i/add' % (HOST, PORT)
 TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 cmd = 'rtl_433 -G -F json'
 
@@ -31,10 +33,13 @@ def check_entry(entry):
 
 
 def post_data(temperature):
-    timestamp = dt.now().strftime(TIME_FORMAT)
+    timestamp = dt.utcnow().strftime(TIME_FORMAT)
     data = {'timestamp': timestamp, 'temperature': temperature}
-    r = requests.post(URL, data=data)
-    print r.status_code
+    try:
+        r = requests.post(URL, data=data)
+        print r.status_code
+    except Exception, e:
+        print e
 
 
 def main(N=10):
@@ -50,17 +55,22 @@ def main(N=10):
             text = p.stdout.readline().strip()
             entry = parse_entry(text)
             if check_entry(entry):
-                print entry
+                print 'good entry'
                 temp_list.append(entry['temperature_C'])
                 n += 1
+            else:
+                print 'bad entry'
         except KeyboardInterrupt:
             break
 
     p.terminate()
-    avg = 1.0 * sum(temp_list) / n
-    print 'collected %d entries with an average of %.2f' % (N, avg)
-    print 'posting to', URL
-    post_data(avg)
+    if n > 0:
+        avg = 1.0 * sum(temp_list) / n
+        print 'collected %d entries with an average of %.2f' % (N, avg)
+        print 'posting to', URL
+        post_data(avg)
+    else:
+        print 'no data collected, exiting'
 
 
 if __name__ == '__main__':

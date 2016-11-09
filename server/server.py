@@ -60,14 +60,17 @@ def root():
 
 @app.route('/add', methods=['POST'])
 def add():
-    timestamp = request.form['timestamp']
-    temperature = request.form['temperature']
+    try:
+        timestamp = request.form['timestamp']
+        temperature = request.form['temperature']
 
-    db = get_db()
-    db.execute('insert into entries (timestamp, temperature) values (?, ?)',
-               [timestamp, temperature])
-    db.commit()
-    return make_response('OK')
+        db = get_db()
+        db.execute('insert into entries (timestamp, temperature) values (?, ?)',
+                   [timestamp, temperature])
+        db.commit()
+        return make_response('OK')
+    except:
+        return make_response(400)
 
 
 if __name__ == '__main__':
