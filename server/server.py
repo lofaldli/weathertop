@@ -1,7 +1,7 @@
 import sqlite3
 import os
 from datetime import datetime as dt
-from flask import Flask, render_template, g, redirect, url_for, request, make_response
+from flask import Flask, render_template, g, redirect, url_for, request, make_response, abort
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -55,7 +55,12 @@ def get_data():
 
 @app.route('/')
 def root():
-    return render_template('plot.html', data=get_data())
+    try:
+        data = get_data()
+        return render_template('plot.html', data=data)
+    except sqlite3.OperationalError, e:
+        print 'sqlite error:', e
+        return abort(500)
 
 
 @app.route('/add', methods=['POST'])
@@ -69,8 +74,11 @@ def add():
                    [timestamp, temperature])
         db.commit()
         return make_response('OK')
+    except sqlite3.OperationalError, e:
+        print 'sqlite error:', e
+        return abort(500)
     except:
-        return make_response(400)
+        return abort(400)
 
 
 if __name__ == '__main__':
