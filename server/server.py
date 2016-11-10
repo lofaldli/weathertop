@@ -1,87 +1,62 @@
-import sqlite3
 import os
 from datetime import datetime as dt
-from flask import Flask, render_template, g, redirect, url_for, request, make_response, abort
+from flask import Flask, render_template, request, make_response, abort
+from flask_sqlalchemy import SQLAlchemy
 
 TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 app = Flask(__name__)
 app.config.from_object(__name__)
-
 app.config.update(dict(
-    DATABASE=os.path.join(app.root_path, 'weathertop.db')
+    DATABASE=os.path.join(app.root_path, 'weathertop.db'),
+    SQLALCHEMY_DATABASE_URI=os.path.join('sqlite:////tmp/weathertop.db'),
+    SQLALCHEMY_TRACK_MODIFICATIONS=False
 ))
 
-
-def connect_db():
-    rv = sqlite3.connect(app.config['DATABASE'])
-    rv.row_factory = sqlite3.Row
-    return rv
+db = SQLAlchemy(app)
 
 
-def get_db():
-    if not hasattr(g, 'sqlite_db'):
-        g.sqlite_db = connect_db()
-    return g.sqlite_db
+class Data(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    timestamp = db.Column(db.DateTime)
+    temperature = db.Column(db.Float)
 
+    def __init__(self, temperature):
+        self.timestamp = dt.utcnow()
+        self.temperature = temperature
 
-def init_db():
-    db = get_db()
-    with app.open_resource('schema.sql', mode='r') as f:
-        db.cursor().executescript(f.read())
-    db.commit()
+    def __repr__(self):
+        return '<Data %s: %.2f C>' % (self.timestamp.strftime(TIME_FORMAT),
+                                      self.temperature)
 
-
-@app.cli.command('initdb')
-def initdb_command():
-    init_db()
-    print 'initialized the database'
-
-
-@app.teardown_appcontext
-def close_db(error):
-    if hasattr(g, 'sqlite_db'):
-        g.sqlite_db.close()
-
-
-def get_data():
-    db = get_db()
-    cur = db.execute(
-        'select timestamp, temperature from entries order by id asc'
-    )
-    entries = cur.fetchall()
-    data = map(lambda e: {'timestamp': e[0], 'temperature': e[1]}, entries)
-
-    return data
+    def to_dict(self):
+        return {'temperature': self.temperature,
+                'timestamp': self.timestamp.strftime(TIME_FORMAT)}
 
 
 @app.route('/')
 def root():
     try:
-        data = get_data()
+        data = map(lambda d: d.to_dict(), Data.query.all())
         return render_template('plot.html', data=data)
-    except sqlite3.OperationalError, e:
-        print 'sqlite error:', e
+    except Exception, e:
+        print e
         return abort(500)
 
 
 @app.route('/add', methods=['POST'])
 def add():
     try:
-        timestamp = dt.utcnow().strftime(TIME_FORMAT)
         temperature = request.form['temperature']
+        db.session.add(Data(temperature))
+        db.session.commit()
 
-        db = get_db()
-        db.execute('insert into entries (timestamp, temperature) values (?, ?)',
-                   [timestamp, temperature])
-        db.commit()
         return make_response('OK')
-    except sqlite3.OperationalError, e:
-        print 'sqlite error:', e
-        return abort(500)
-    except:
+    except Exception, e:
+        print e
         return abort(400)
 
 
 if __name__ == '__main__':
+    db.create_all()
     app.run(debug=True)
