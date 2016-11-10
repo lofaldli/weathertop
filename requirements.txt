@@ -1,4 +1,4 @@
-flask
-flask-sqlalchemy
-requests
+flask>=0.11.1
+flask-sqlalchemy>=2.1
+requests>=2.11.1
 
