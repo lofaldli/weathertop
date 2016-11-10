@@ -89,5 +89,4 @@ if __name__ == '__main__':
     if args.dummy:
         post_data(args.dummy)
     else:
-        print args
         main(args)
