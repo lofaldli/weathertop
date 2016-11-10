@@ -27,8 +27,6 @@ it features `logger.py` which reads data from the rtl-sdr and post them to the f
 
 this makes the webserver publicly available on port 5000
 
-**NOTE** run `flask initdb` to initialize the sqlite database 
-
 [1]: http://sdr.osmocom.org/trac/wiki/rtl-sdr
 [2]: https://github.com/steve-m/librtlsdr
 [3]: https://github.com/merbanan/rtl_433
