@@ -1,4 +1,4 @@
-from datetime import datetime as dt
+import argparse
 import json
 import requests
 import subprocess
@@ -6,7 +6,6 @@ import subprocess
 HOST = 'localhost'
 PORT = 5000
 URL = 'http://%s:%i/add' % (HOST, PORT)
-TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 cmd = 'rtl_433 -G -F json'
 
 
@@ -33,8 +32,7 @@ def check_entry(entry):
 
 
 def post_data(temperature):
-    timestamp = dt.utcnow().strftime(TIME_FORMAT)
-    data = {'timestamp': timestamp, 'temperature': temperature}
+    data = {'temperature': temperature}
     try:
         r = requests.post(URL, data=data)
         print r.status_code
@@ -42,7 +40,10 @@ def post_data(temperature):
         print e
 
 
-def main(N=10):
+def main(args, N=10):
+    if args.num_entries:
+        N = args.num_entries
+
     print 'executing', cmd
     p = subprocess.Popen(cmd.split(),
                          stdout=subprocess.PIPE,
@@ -73,5 +74,20 @@ def main(N=10):
         print 'no data collected, exiting'
 
 
+def parse_args():
+    p = argparse.ArgumentParser()
+    p.add_argument('-d', '--dummy', type=float,
+                   help='send dummy data and exit')
+    p.add_argument('-n', '--num-entries', type=int,
+                   help='number of entries to sample before sending')
+    return p.parse_args()
+
 if __name__ == '__main__':
-    main()
+    args = parse_args()
+    print args
+
+    if args.dummy:
+        post_data(args.dummy)
+    else:
+        print args
+        main(args)

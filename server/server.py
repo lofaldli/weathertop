@@ -3,6 +3,8 @@ import os
 from datetime import datetime as dt
 from flask import Flask, render_template, g, redirect, url_for, request, make_response, abort
 
+TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
+
 app = Flask(__name__)
 app.config.from_object(__name__)
 
@@ -66,7 +68,7 @@ def root():
 @app.route('/add', methods=['POST'])
 def add():
     try:
-        timestamp = request.form['timestamp']
+        timestamp = dt.utcnow().strftime(TIME_FORMAT)
         temperature = request.form['temperature']
 
         db = get_db()
