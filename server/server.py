@@ -8,8 +8,8 @@ TIME_FORMAT = '%Y-%m-%d %H:%M:%S'
 app = Flask(__name__)
 app.config.from_object(__name__)
 app.config.update(dict(
-    DATABASE=os.path.join(app.root_path, 'weathertop.db'),
-    SQLALCHEMY_DATABASE_URI=os.path.join('sqlite:////tmp/weathertop.db'),
+    SQLALCHEMY_DATABASE_URI='sqlite:///' +
+                            os.path.join(app.root_path, 'weathertop.db'),
     SQLALCHEMY_TRACK_MODIFICATIONS=False
 ))
 
@@ -34,13 +34,20 @@ class Data(db.Model):
                 'timestamp': self.timestamp.strftime(TIME_FORMAT)}
 
 
+@app.cli.command('initdb')
+def initdb_command():
+    app.logger.debug('initializing database')
+    db.drop_all()
+    db.create_all()
+
+
 @app.route('/')
 def root():
     try:
         data = map(lambda d: d.to_dict(), Data.query.all())
         return render_template('plot.html', data=data)
     except Exception, e:
-        print e
+        app.logger.error(e)
         return abort(500)
 
 
@@ -53,10 +60,10 @@ def add():
 
         return make_response('OK')
     except Exception, e:
-        print e
+        app.logger.error(e)
         return abort(400)
 
 
 if __name__ == '__main__':
-    db.create_all()
-    app.run(debug=True)
+    print "use 'flask run' instead"
+    # app.run(debug=True)
