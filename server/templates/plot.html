@@ -1,5 +1,6 @@
 {% extends "layout.html" %}
 {% block body %}
+    <div id=svg-container></div>
     <script src='https://d3js.org/d3.v4.min.js'></script>
     <script>
         function centalMovingAverage(data, M, N=10) {
@@ -13,9 +14,9 @@
         }
         var data = {{ data|tojson|safe }};
 
-        var body = d3.select('body');
+        var container = d3.select('#svg-container');
 
-        var svg = body.append('svg');
+        var svg = container.append('svg');
         svg.attr('width', window.innerWidth);
         svg.attr('height', window.innerHeight);
             
