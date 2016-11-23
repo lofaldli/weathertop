@@ -11,6 +11,7 @@ logging.basicConfig(filename='logger.log',
 HOST = 'localhost'
 PORT = 5000
 CMD = 'rtl_433 -G -F json'
+TIMEOUT = 5
 
 
 def start_process(cmd):
@@ -52,7 +53,7 @@ def post_data(temperature):
     url = 'http://%s:%d/add' % (HOST, PORT)
     data = {'temperature': temperature}
     try:
-        requests.post(url, data=data)
+        requests.post(url, data=data, timeout=TIMEOUT)
     except Exception:
         logging.debug('could not connect to %s' % url)
         pass
