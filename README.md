@@ -4,6 +4,8 @@ this is a temperature monitor meant to be used with an [rtl-sdr][1] (or similar)
 
 it features `logger.py` which reads data from the rtl-sdr and post them to the flask webserver in `server` which also generates plots in the webbrowser
 
+![screenshot](screenshot.png "screenshot")
+
 ## setup
 
 1. install requirements
