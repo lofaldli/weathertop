@@ -50,10 +50,10 @@ def check_entry(entry):
 
 
 def post_data(temperature):
-    url = 'http://%s:%d/add' % (HOST, PORT)
+    url = 'http://%s:%d/data' % (HOST, PORT)
     data = {'temperature': temperature}
     try:
-        requests.post(url, data=data, timeout=TIMEOUT)
+        requests.post(url, json=data, timeout=TIMEOUT)
     except Exception:
         logging.debug('could not connect to %s' % url)
         pass

@@ -3,17 +3,6 @@
     <div id=svg-container></div>
     <script src='https://d3js.org/d3.v4.min.js'></script>
     <script>
-        function centalMovingAverage(data, M, N=10) {
-            var sum = 0;
-            var n = 0;
-            for (var i=Math.max(0,M-N); i<Math.min(data.length,M+N); i++) {
-                sum += data[i].temperature;
-                n++;
-            }
-            return sum/n;
-        }
-        var data = {{ data|tojson|safe }};
-
         var container = d3.select('#svg-container');
 
         var elementWidth = Math.min(800,window.innerWidth),
@@ -31,55 +20,47 @@
 
         var parseTime = d3.timeParse('%Y-%m-%d %H:%M:%S');
 
-        for (var i=0; i<data.length; i++) {
-            data[i].timestamp = parseTime(data[i].timestamp);
-            data[i].temperature = +data[i].temperature;
-        }
-        for (var M=0; M<data.length; M++) {
-            data[M].cma = centalMovingAverage(data, M);
-        }
-
         var x = d3.scaleTime()
             .rangeRound([0,width]);
 
         var y = d3.scaleLinear()
             .rangeRound([height, 0]);
 
-        var line_raw = d3.line()
+        var line = d3.line()
             .x(function(d) { return x(d.timestamp); })
             .y(function(d) { return y(d.temperature); });
 
-        var line_cma = d3.line()
-            .x(function(d) { return x(d.timestamp); })
-            .y(function(d) { return y(d.cma); });
+        d3.json("/data", function(data) {
 
-        x.domain(d3.extent(data, function(d) { return d.timestamp; }));
-        y.domain(d3.extent(data, function(d) { return d.temperature; }));
+            for (var i=0; i<data.length; i++) {
+                data[i].timestamp = parseTime(data[i].timestamp);
+                data[i].temperature = +data[i].temperature;
+            }
 
-        g.append('g')
-            .attr('class', 'axis axis--x')
-            .attr('transform', 'translate(0,' + height + ')')
-            .call(d3.axisBottom(x));
+            x.domain(d3.extent(data, function(d) { return d.timestamp; }));
+            y.domain(d3.extent(data, function(d) { return d.temperature; }));
 
-        g.append('g')
-            .attr('class', 'axis axis--y')
-            .call(d3.axisLeft(y))
-          .append('text')
-            .attr('fill', '#000')
-            .attr('transform', 'rotate(-90)')
-            .attr('y', 6)
-            .attr('dy', '0.71em')
-            .style('text-anchor', 'end')
-            .text('temperature (\xB0C)');
+            g.append('g')
+                .attr('class', 'axis axis--x')
+                .attr('transform', 'translate(0,' + height + ')')
+                .call(d3.axisBottom(x));
 
-        g.append('path')
-            .datum(data)
-            .attr('class', 'line raw')
-            .attr('d', line_raw);
+            g.append('g')
+                .attr('class', 'axis axis--y')
+                .call(d3.axisLeft(y))
+              .append('text')
+                .attr('fill', '#000')
+                .attr('transform', 'rotate(-90)')
+                .attr('y', 6)
+                .attr('dy', '0.71em')
+                .style('text-anchor', 'end')
+                .text('temperature (\xB0C)');
 
-        g.append('path')
-            .datum(data)
-            .attr('class', 'line cma')
-            .attr('d', line_cma);
+            g.append('path')
+                .datum(data)
+                .attr('class', 'line raw')
+                .attr('d', line);
+
+        });
     </script>
 {% endblock %}
