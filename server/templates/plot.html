@@ -16,9 +16,12 @@
 
         var container = d3.select('#svg-container');
 
+        var elementWidth = Math.min(800,window.innerWidth),
+            elementHeight = 0.5* elementWidth;
+
         var svg = container.append('svg');
-        svg.attr('width', window.innerWidth);
-        svg.attr('height', window.innerHeight);
+        svg.attr('width', elementWidth);
+        svg.attr('height', elementHeight);
             
         var margin = {top: 30, right: 20, bottom: 30, left: 50},
             width = +svg.attr('width') - margin.left - margin.right,
